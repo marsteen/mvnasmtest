@@ -6,7 +6,7 @@ NASM assembler test project
 
 g++  
 make  
-cmake  
+(cmake)  
 
 ### Prerequisites:
 
