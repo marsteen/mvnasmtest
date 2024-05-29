@@ -6,26 +6,42 @@ using namespace std;
 
 extern "C"
 {
-  __int32_t cpuid0(char* buff);
-  __int32_t cpuid1(unsigned int* buff);
-  unsigned int ASM_rdrand();
+  // Fuer Linux:
+  int32_t cpuid0(char* buff);
+  int32_t cpuid1(unsigned int* buff);
+  
+  // Fuer Windows:
+  int32_t cpuid0_win(char* buff);
+  int32_t cpuid1_win(unsigned int* buff);  
+  uint32_t ASM_rdrand();
 }
 
  
 
 int main(int argc, char* argv[])
 {
+  // 
+  // CPUID erster Aufruf
+  // 
   char buff0[16];  
   memset(buff0, 0, 16);
-  unsigned int cpuid0out = cpuid0(buff0);
-  
-  unsigned int buff1[4];  
-  memset(buff1, 0, 16);
-  unsigned int cpuid1out = cpuid1(buff1);
-  
-  
-  
-  
+#ifdef _WIN32  
+  uint32_t cpuid0out = cpuid0_win(buff0);
+#else  
+  uint32_t cpuid0out = cpuid0(buff0);
+#endif
+
+  // 
+  // CPUID zweiter Aufruf
+  //   
+  uint32_t buff1[4];  
+  memset(buff1, 0, 16);  
+#ifdef _WIN32
+  uint32_t cpuid1out = cpuid1_win(buff1);
+#else
+  uint32_t cpuid1out = cpuid1(buff1);
+#endif  
+ 
   cout << "sizeof(void*)=" << sizeof(void*) << endl;
   //cout << "cpuid0=" << cpuid0out << endl;
   cout << "buff0=" << buff0 << endl;
@@ -119,6 +135,8 @@ int main(int argc, char* argv[])
     cout << "  3DNOW+" << endl;
   }
   
+  
+  cout << "\n100 ASM_rdrand calls:" << endl;  
   for (int i = 0; i < 100; i++)
   {
     cout << "ASM_rdrand()=" <<  ASM_rdrand() << endl;
