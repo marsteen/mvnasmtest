@@ -18,6 +18,14 @@ extern "C"
   uint32_t ASM_rdrand();
 }
 
+enum CPUREG: int
+{
+    EAX,
+    EBX,
+    ECX,
+    EDX
+};
+
  
 static void getCpuidLevel1()
 {  
@@ -25,12 +33,12 @@ static void getCpuidLevel1()
   // 
   // CPUID Level 1 (eax=1)
   //   
-  uint32_t buff1[4];  
-  memset(buff1, 0, 16);  
+  uint32_t buff[4];  
+  memset(buff, 0, 16);  
 #ifdef _WIN32
-  uint32_t cpuid1out = cpuid1_win(buff1);
+  uint32_t cpuid1out = cpuid1_win(buff);
 #else
-  uint32_t cpuid1out = cpuid1(buff1);
+  uint32_t cpuid1out = cpuid1(buff);
 #endif  
 
   //**************************************************************************
@@ -50,23 +58,23 @@ static void getCpuidLevel1()
         D_RDRAND = 1<<30
     };
 
-  if (buff1[1] & CPUID1_ECX::D_AVX)
+  if (buff[CPUREG::ECX] & CPUID1_ECX::D_AVX)
   {
     cout << "  AVX" << endl;
   }
-    if (buff1[2] & CPUID1_ECX::D_RDRAND)
+    if (buff[CPUREG::ECX] & CPUID1_ECX::D_RDRAND)
   {
     cout << "  RDRAND" << endl;
   }
-  if (buff1[2] & CPUID1_ECX::D_SSE41)
+  if (buff[CPUREG::ECX] & CPUID1_ECX::D_SSE41)
   {
     cout << "  SSE 4.1"<< endl;
   }  
-  if (buff1[2] & CPUID1_ECX::D_SSE42)
+  if (buff[CPUREG::ECX] & CPUID1_ECX::D_SSE42)
   {
     cout << "  SSE 4.2"<< endl;
   }
-  if (buff1[2] & CPUID1_ECX::D_SSE3)
+  if (buff[CPUREG::ECX] & CPUID1_ECX::D_SSE3)
   {
     cout << "  SSE 3"<< endl;
   }
@@ -89,31 +97,31 @@ static void getCpuidLevel1()
         D_3DNOW   = 1<<31
     };
 
-  if (buff1[3] & CPUID1_EDX::D_FPU)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_FPU)
   {
     cout << "  FPU" << endl;
   }
-  if (buff1[3] & CPUID1_EDX::D_MMX)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_MMX)
   {
     cout << "  MMX" << endl;
   }
-  if (buff1[3] & CPUID1_EDX::D_SSE)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_SSE)
   {
     cout << "  SSE" << endl;
   }
-  if (buff1[3] & CPUID1_EDX::D_SSE2)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_SSE2)
   {
     cout << "  SSE2" << endl;
   }
-  if (buff1[3] & CPUID1_EDX::D_HTT)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_HTT)
   {
     cout << "  HTT" << endl;
   }
-  if (buff1[3] & CPUID1_EDX::D_3DNOW)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_3DNOW)
   {
     cout << "  3DNOW" << endl;
   }
-  if (buff1[3] & CPUID1_EDX::D_3DNOWP)
+  if (buff[CPUREG::EDX] & CPUID1_EDX::D_3DNOWP)
   {
     cout << "  3DNOW+" << endl;
   } 
@@ -178,13 +186,20 @@ static void getCpuidLevel7()
         D_AVX512F   = 1<<16
     };
 
-
+    if (buff[CPUREG::EDX] & D_AVX512VL)   cout << "AVX512VL" << endl;
+    if (buff[CPUREG::EDX] & D_AVX512BW)   cout << "AVX512BW" << endl;
+    if (buff[CPUREG::EDX] & D_AVX512CD)   cout << "AVX512CD" << endl;
+    if (buff[CPUREG::EDX] & D_AVX512PF)   cout << "AVX512PF" << endl;
+    if (buff[CPUREG::EDX] & D_AVX512IFMA) cout << "AVX512IFMA" << endl;
+    if (buff[CPUREG::EDX] & D_RDSEED)     cout << "RDSEED" << endl;
+    if (buff[CPUREG::EDX] & D_AVX512DQ)   cout << "AVX512DQ" << endl;
+    if (buff[CPUREG::EDX] & D_AVX512F)    cout << "AVX512F" << endl;
 
 }
 
 //**************************************************************************
 //
-// getCpuidLevel7
+// asmRand
 //
 //**************************************************************************
 
@@ -223,3 +238,4 @@ int main(int argc, char* argv[])
   
   return 0; 
 }
+
