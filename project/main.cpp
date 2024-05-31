@@ -9,30 +9,21 @@ extern "C"
   // Fuer Linux:
   int32_t cpuid0(char* buff);
   int32_t cpuid1(unsigned int* buff);
+  int32_t cpuid7(unsigned int* buff);
   
   // Fuer Windows:
   int32_t cpuid0_win(char* buff);
-  int32_t cpuid1_win(unsigned int* buff);  
+  int32_t cpuid1_win(unsigned int* buff);
+  int32_t cpuid7_win(unsigned int* buff);
   uint32_t ASM_rdrand();
 }
 
  
-
-int main(int argc, char* argv[])
-{
-  // 
-  // CPUID erster Aufruf
-  // 
-  char buff0[16];  
-  memset(buff0, 0, 16);
-#ifdef _WIN32  
-  uint32_t cpuid0out = cpuid0_win(buff0);
-#else  
-  uint32_t cpuid0out = cpuid0(buff0);
-#endif
+static void getCpuidLevel1()
+{  
 
   // 
-  // CPUID zweiter Aufruf
+  // CPUID Level 1 (eax=1)
   //   
   uint32_t buff1[4];  
   memset(buff1, 0, 16);  
@@ -41,107 +32,194 @@ int main(int argc, char* argv[])
 #else
   uint32_t cpuid1out = cpuid1(buff1);
 #endif  
- 
-  cout << "sizeof(void*)=" << sizeof(void*) << endl;
-  //cout << "cpuid0=" << cpuid0out << endl;
-  cout << "buff0=" << buff0 << endl;
-  cout << "eax=" << buff1[0] << endl;
-  cout << "ebx=" << buff1[1] << endl;
-  cout << "ecx=" << buff1[2] << endl;
-  cout << "edx=" << buff1[3] << endl;
-  
-// EDX  
-#define CPUID1_FPU     1   
-#define CPUID1_64      1<<6
-#define CPUID1_MMX     1<<23
-#define CPUID1_SSE     1<<25
-#define CPUID1_SSE2    1<<26
-#define CPUID1_HTT     1<<28
-#define CPUID1_3DNOWP  1<<30
-#define CPUID1_3DNOW   1<<31
-  
-  
-// EBX  
-#define CPUID1_AVX512F  1<<16
 
-// ECX
-#define CPUID1_SSE3   1<<0
-#define CPUID1_SSE41  1<<19
-#define CPUID1_SSE42  1<<20
-#define CPUID1_AVX    1<<28
-#define CPUID1_RDRAND 1<<30
-  
-  
-  cout << "Features:" << endl;
-  
-  // EBX
-  
-  if (buff1[1] & CPUID1_AVX)
+  //**************************************************************************
+  //
+  // ECX
+  //
+  //**************************************************************************
+
+    // ECX
+    enum CPUID1_ECX
+    {
+        D_SSE3   = 1<<0,
+        D_SSSE3  = 1<<9,
+        D_SSE41  = 1<<19,
+        D_SSE42  = 1<<20,
+        D_AVX    = 1<<28,
+        D_RDRAND = 1<<30
+    };
+
+  if (buff1[1] & CPUID1_ECX::D_AVX)
   {
     cout << "  AVX" << endl;
   }
-  
-  // ECX
-  
-  if (buff1[2] & CPUID1_AVX512F)
-  {
-    cout << "  AVX512F" << endl;
-  }
-  if (buff1[2] & CPUID1_RDRAND)
+    if (buff1[2] & CPUID1_ECX::D_RDRAND)
   {
     cout << "  RDRAND" << endl;
   }
-  if (buff1[2] & CPUID1_SSE41)
+  if (buff1[2] & CPUID1_ECX::D_SSE41)
   {
     cout << "  SSE 4.1"<< endl;
   }  
-  if (buff1[2] & CPUID1_SSE42)
+  if (buff1[2] & CPUID1_ECX::D_SSE42)
   {
     cout << "  SSE 4.2"<< endl;
   }
-  if (buff1[2] & CPUID1_SSE3)
+  if (buff1[2] & CPUID1_ECX::D_SSE3)
   {
     cout << "  SSE 3"<< endl;
   }
 
+  //**************************************************************************
+  //
   // EDX
-  
-  if (buff1[3] & CPUID1_FPU)
+  //
+  //**************************************************************************
+
+    enum CPUID1_EDX
+    {
+        D_FPU     = 1<<0,
+        D_BITS64  = 1<<6,
+        D_MMX     = 1<<23,
+        D_SSE     = 1<<25,
+        D_SSE2    = 1<<26,
+        D_HTT     = 1<<28,
+        D_3DNOWP  = 1<<30,
+        D_3DNOW   = 1<<31
+    };
+
+  if (buff1[3] & CPUID1_EDX::D_FPU)
   {
     cout << "  FPU" << endl;
   }
-  if (buff1[3] & CPUID1_MMX)
+  if (buff1[3] & CPUID1_EDX::D_MMX)
   {
     cout << "  MMX" << endl;
   }
-  if (buff1[3] & CPUID1_SSE)
+  if (buff1[3] & CPUID1_EDX::D_SSE)
   {
     cout << "  SSE" << endl;
   }
-  if (buff1[3] & CPUID1_SSE2)
+  if (buff1[3] & CPUID1_EDX::D_SSE2)
   {
     cout << "  SSE2" << endl;
   }
-  if (buff1[3] & CPUID1_HTT)
+  if (buff1[3] & CPUID1_EDX::D_HTT)
   {
     cout << "  HTT" << endl;
   }
-  if (buff1[3] & CPUID1_3DNOW)
+  if (buff1[3] & CPUID1_EDX::D_3DNOW)
   {
     cout << "  3DNOW" << endl;
   }
-  if (buff1[3] & CPUID1_3DNOWP)
+  if (buff1[3] & CPUID1_EDX::D_3DNOWP)
   {
     cout << "  3DNOW+" << endl;
-  }
-  
-  
-  cout << "\n100 ASM_rdrand calls:" << endl;  
-  for (int i = 0; i < 100; i++)
+  } 
+}  
+
+//**************************************************************************
+//
+// main
+//
+//**************************************************************************
+
+static void getCpuidLevel0()
+{  
+    // 
+    // CPUID Level 0 (eax=1)
+    // Fuer Bedeutung der CPU-Level siehe:
+    // https://www.sandpile.org/x86/cpuid.htm    
+    // 
+
+    char buff0[16];  
+      memset(buff0, 0, 16);
+    #ifdef _WIN32  
+      uint32_t cpuid0out = cpuid0_win(buff0);
+    #else  
+      uint32_t cpuid0out = cpuid0(buff0);
+    #endif
+
+    cout << "buff0=" << buff0 << endl;
+
+
+}
+
+//**************************************************************************
+//
+// getCpuidLevel7
+//
+//**************************************************************************
+
+static void getCpuidLevel7()
+{  
+  // 
+  // CPUID Level 7 (eax=7)
+  //   
+  uint32_t buff[16];  
+  memset(buff, 0, 16);  
+#ifdef _WIN32
+  uint32_t cpuid7out = cpuid7_win(buff);
+#else
+  uint32_t cpuid7out = cpuid7(buff);
+#endif 
+
+    enum CPUID7_EDX
+    {
+        D_AVX512VL  = 1<<31,
+        D_AVX512BW  = 1<<30,
+        D_AVX512CD  = 1<<28,
+        D_AVX512ER  = 1<<27,
+        D_AVX512PF  = 1<<26,
+        D_AVX512IFMA= 1<<21,
+        D_RDSEED    = 1<<18,
+        D_AVX512DQ  = 1<<17,
+        D_AVX512F   = 1<<16
+    };
+
+
+
+}
+
+//**************************************************************************
+//
+// getCpuidLevel7
+//
+//**************************************************************************
+
+static void asmRand()
+{
+  cout << "\n5 ASM_rdrand calls:" << endl;  
+  for (int i = 0; i < 5; i++)
   {
     cout << "ASM_rdrand()=" <<  ASM_rdrand() << endl;
   }
-  
+}
+
+//**************************************************************************
+//
+// main
+//
+//**************************************************************************
+
+
+int main(int argc, char* argv[])
+{
+   
+
+  if (sizeof(void*) != 8)
+  {
+    cout << "****** not a 64 bit system! Program cannot run.";
+  }
+  else
+  {
+    cout << "Features:" << endl;
+    getCpuidLevel0();
+    getCpuidLevel1();
+    getCpuidLevel7();
+    asmRand();
+  }
   
   return 0; 
 }
