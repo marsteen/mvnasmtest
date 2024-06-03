@@ -108,6 +108,7 @@ cpuid7_win:
     push  rcx
     push  rdi
     mov   rdi, rcx
+	mov   ecx, 0	
     CPUID        
     mov   [rdi + 0],  eax
     mov   [rdi + 4],  ebx   
