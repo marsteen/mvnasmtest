@@ -5,7 +5,7 @@
 .SUFFIXES: .cpp .asm
 
 CCFILES  = main.cpp
-ASMFILES = test.asm
+ASMFILES = cpuid64.asm
 
 #
 # Flags
@@ -37,7 +37,7 @@ ASMOBJECTS  = $(ASMFILES:.asm=.o)
 # Target
 #
 
-TARGET = nasm-test
+TARGET = ../bin/cpuid64
 default: $(TARGET)
 
 #

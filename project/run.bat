@@ -1,0 +1,1 @@
+%~dp0/bin/cpuid64 > output-cpuid64.txt
